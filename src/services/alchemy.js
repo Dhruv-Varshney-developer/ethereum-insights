@@ -1,9 +1,8 @@
 import { Network, Alchemy } from "alchemy-sdk";
-import { apikey } from "./apikey";
-const apiKey = apikey;
+import { apikey } from "./apikey.js";
 
 const settings = {
-  apiKey: apiKey,
+  apiKey: apikey,
   network: Network.ETH_MAINNET,
 };
 export const alchemy = new Alchemy(settings);
