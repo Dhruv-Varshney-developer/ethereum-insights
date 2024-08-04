@@ -1,9 +1,16 @@
-import React from 'react';
+import React from "react";
+import ERC20TransferVolumeChart from "./components/firstchart.jsx";
+import BaseFeeChart from "./components/secondchart.jsx";
+import GasUsageRatioChart from "./components/thirdchart.jsx";
+
 function App() {
   return (
-    <div>
-      <h1>My Ethereum Insight</h1>
-      <p>Here is my Ethereum Insight</p>
+    <div className="App">
+      <h1>ERC20 Token Transfer Volume Monitor</h1>
+      <ERC20TransferVolumeChart />
+      <BaseFeeChart />
+      <GasUsageRatioChart />
+
     </div>
   );
 }
