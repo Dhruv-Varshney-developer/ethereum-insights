@@ -4,15 +4,28 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const BLOCKS_TO_FETCH = 10;
+const INITIAL_RETRY_DELAY = 1000;
+const MAX_RETRIES = 3;
+
+async function fetchWithRetry(fn, retries = MAX_RETRIES, delay = INITIAL_RETRY_DELAY) {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries <= 0) throw error;
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return fetchWithRetry(fn, retries - 1, delay * 2);
+  }
+}
 
 async function fetchTokenTransfers(tokenAddress, fromBlock, toBlock) {
-  const transfers = await alchemy.core.getAssetTransfers({
-    fromBlock: fromBlock,
-    toBlock: toBlock,
-    contractAddresses: [tokenAddress],
-    category: ["erc20"],
-  });
-  return transfers.transfers;
+  return fetchWithRetry(() =>
+    alchemy.core.getAssetTransfers({
+      fromBlock: fromBlock,
+      toBlock: toBlock,
+      contractAddresses: [tokenAddress],
+      category: ["erc20"],
+    })
+  );
 }
 
 export default function ERC20TransferVolumeChart() {
@@ -20,31 +33,37 @@ export default function ERC20TransferVolumeChart() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const latestBlock = await alchemy.core.getBlockNumber();
-      const fromBlock = latestBlock - BLOCKS_TO_FETCH;
-      
-      let newChartData = [];
-      
-      for (let i = 0; i <= BLOCKS_TO_FETCH; i++) {
-        const blockNumber = fromBlock + i;
-        const transfers = await fetchTokenTransfers(USDC_ADDRESS, blockNumber, blockNumber);
-        const totalVolume = transfers.reduce((sum, transfer) => sum + parseFloat(transfer.value), 0);
-        
-        newChartData.push({
-          blockNumber,
-          volume: totalVolume,
-        });
+      try {
+        const latestBlock = await alchemy.core.getBlockNumber();
+        const fromBlock = latestBlock - BLOCKS_TO_FETCH;
+
+        let newChartData = [];
+
+        for (let i = 0; i <= BLOCKS_TO_FETCH; i++) {
+          const blockNumber = fromBlock + i;
+          const transfers = await fetchTokenTransfers(USDC_ADDRESS, blockNumber, blockNumber);
+          const totalVolume = transfers.transfers.reduce((sum, transfer) => sum + parseFloat(transfer.value), 0);
+
+          newChartData.push({
+            blockNumber,
+            volume: totalVolume,
+          });
+
+          // Add a delay between requests
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        setChartData(newChartData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        // You might want to set an error state here if you want to show a user-friendly message
       }
-      
-      setChartData(newChartData);
     };
 
     fetchData();
-    
-    // Set up an interval to fetch new data every 15 seconds
-    const intervalId = setInterval(fetchData, 15000);
 
-    // Clean up the interval on component unmount
+    const intervalId = setInterval(fetchData, 20000);
+
     return () => clearInterval(intervalId);
   }, []);
 

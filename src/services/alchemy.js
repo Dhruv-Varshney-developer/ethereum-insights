@@ -6,5 +6,3 @@ const settings = {
   network: Network.ETH_MAINNET,
 };
 export const alchemy = new Alchemy(settings);
-
-alchemy.core.getBlockNumber("finalized").then(console.log);

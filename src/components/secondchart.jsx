@@ -12,10 +12,21 @@ import {
 } from "recharts";
 
 const BLOCKS_TO_FETCH = 10;
+const INITIAL_RETRY_DELAY = 1000;
+const MAX_RETRIES = 3;
+
+async function fetchWithRetry(fn, retries = MAX_RETRIES, delay = INITIAL_RETRY_DELAY) {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries <= 0) throw error;
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return fetchWithRetry(fn, retries - 1, delay * 2);
+  }
+}
 
 async function fetchBaseFee(blockNumber) {
-  const block = await alchemy.core.getBlock(blockNumber);
-  return block.baseFeePerGas; // This returns the BASEFEE
+  return fetchWithRetry(() => alchemy.core.getBlock(blockNumber));
 }
 
 export default function BaseFeeChart() {
@@ -23,30 +34,37 @@ export default function BaseFeeChart() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const latestBlock = await alchemy.core.getBlockNumber();
-      const fromBlock = latestBlock - BLOCKS_TO_FETCH;
+      try {
+        const latestBlock = await alchemy.core.getBlockNumber();
+        const fromBlock = latestBlock - BLOCKS_TO_FETCH;
 
-      let newChartData = [];
+        let newChartData = [];
 
-      for (let i = 0; i <= BLOCKS_TO_FETCH; i++) {
-        const blockNumber = fromBlock + i;
-        const baseFee = await fetchBaseFee(blockNumber);
+        for (let i = 0; i <= BLOCKS_TO_FETCH; i++) {
+          const blockNumber = fromBlock + i;
+          const block = await fetchBaseFee(blockNumber);
+          const baseFee = block.baseFeePerGas;
 
-        newChartData.push({
-          blockNumber,
-          baseFee: parseFloat(baseFee) / 1e9, // Convert from wei to Gwei
-        });
+          newChartData.push({
+            blockNumber,
+            baseFee: parseFloat(baseFee) / 1e9, // Convert from wei to Gwei
+          });
+
+          // Add a delay between requests
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        setChartData(newChartData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        // You might want to set an error state here if you want to show a user-friendly message
       }
-
-      setChartData(newChartData);
     };
 
     fetchData();
 
-    // Set up an interval to fetch new data every 15 seconds
-    const intervalId = setInterval(fetchData, 15000);
+    const intervalId = setInterval(fetchData, 20000);
 
-    // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
 
