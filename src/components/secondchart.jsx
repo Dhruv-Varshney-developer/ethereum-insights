@@ -10,17 +10,22 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { Card, CardContent, Typography } from "@mui/material";
 
 const BLOCKS_TO_FETCH = 10;
 const INITIAL_RETRY_DELAY = 1000;
 const MAX_RETRIES = 3;
 
-async function fetchWithRetry(fn, retries = MAX_RETRIES, delay = INITIAL_RETRY_DELAY) {
+async function fetchWithRetry(
+  fn,
+  retries = MAX_RETRIES,
+  delay = INITIAL_RETRY_DELAY
+) {
   try {
     return await fn();
   } catch (error) {
     if (retries <= 0) throw error;
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
     return fetchWithRetry(fn, retries - 1, delay * 2);
   }
 }
@@ -47,48 +52,51 @@ export default function BaseFeeChart() {
 
           newChartData.push({
             blockNumber,
-            baseFee: parseFloat(baseFee) / 1e9, // Convert from wei to Gwei
+            baseFee: parseFloat(baseFee) / 1e9,
           });
 
-          // Add a delay between requests
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
         setChartData(newChartData);
       } catch (error) {
         console.error("Error fetching data:", error);
-        // You might want to set an error state here if you want to show a user-friendly message
       }
     };
 
     fetchData();
-
     const intervalId = setInterval(fetchData, 20000);
 
     return () => clearInterval(intervalId);
   }, []);
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-8">
-      <h2 className="text-xl font-bold mb-4">Base Fee per Block</h2>
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart
-          data={chartData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="blockNumber" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="baseFee"
-            stroke="#82ca9d"
-            activeDot={{ r: 8 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <Card elevation={3} sx={{ mt: 4, mx: "auto", maxWidth: 800 }}>
+      <CardContent>
+        <Typography variant="h5" gutterBottom align="center">
+          Base Fee per Block
+        </Typography>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+            <XAxis dataKey="blockNumber" />
+            <YAxis />
+            <Tooltip animationDuration={500} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="baseFee"
+              stroke="#4caf50"
+              strokeWidth={2}
+              activeDot={{ r: 10 }}
+              isAnimationActive={true}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   );
 }
