@@ -1,70 +1,103 @@
-# Getting Started with Create React App
+# Real-Time Ethereum Blockchain Analytics Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Project Overview
 
-## Available Scripts
+Ethereum Insights is a sophisticated React-based application that provides in-depth, real-time visualization of key Ethereum network metrics. By leveraging the Alchemy Web3 API, the dashboard offers granular insights into blockchain dynamics through three critical metrics.
 
-In the project directory, you can run:
+## Technical Architecture
 
-### `npm start`
+### Data Source
+- **Provider**: Alchemy Web3 API
+- **Network**: Ethereum Mainnet
+- **Token**: USDC (ERC20 Token)
+- **Endpoint**: Ethereum JSON-RPC via Alchemy Core
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Key Performance Metrics
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 1. ERC20 Token Transfer Volume Chart
+- **Data Point**: Total USDC transfer volume per block
+- **Calculation Method**: 
+  ```
+  Total Volume = Σ(individual transfer values)
+  ```
+- **Retrieval Mechanism**: 
+  - `alchemy.core.getAssetTransfers()`
+  - Filters for ERC20 category
+  - Specific contract address: `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` (USDC)
 
-### `npm test`
+### 2. Base Fee per Block Chart
+- **Data Point**: Base fee in Gwei
+- **Conversion Formula**: 
+  ```
+  Base Fee (Gwei) = BaseFeePerGas / 10^9
+  ```
+- **EIP 1559 Significance**: 
+  - Implements dynamic block sizing
+  - Provides more predictable transaction pricing
+  - Introduces burn mechanism for ETH
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 3. Gas Usage Ratio Chart
+- **Data Point**: Percentage of block gas capacity utilized
+- **Calculation Formula**:
+  ```
+  Gas Usage Ratio = (gasUsed / gasLimit) * 100%
+  ```
+- **Blockchain Efficiency Indicator**:
+  - Shows block congestion levels
+  - Helps predict transaction confirmation times
 
-### `npm run build`
+## Technical Implementation Details
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Fetch Strategy
+- **Blocks Fetched**: Latest 10 blocks
+- **Update Interval**: 20 seconds
+- **Retry Mechanism**: 
+  - Maximum 3 retries
+  - Exponential backoff delay
+  - Prevents API rate limiting
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Error Handling
+- Custom `fetchWithRetry()` function
+- Graceful error logging
+- Prevents application crash during data retrieval
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Performance Optimizations
+- Asynchronous data fetching
+- Responsive container for cross-device compatibility
+- Animated line charts for smooth user experience
 
-### `npm run eject`
+## Dependencies
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Frontend
+- React
+- Recharts (Visualization)
+- Material-UI (Component Styling)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Blockchain Interaction
+- Alchemy Web3 SDK
+- Ethereum JSON-RPC
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Setup and Installation
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Prerequisites
+- Node.js (v14+)
+- Alchemy API Key
+- Ethereum Mainnet Access
 
-## Learn More
+### Installation Steps
+1. Clone the repository
+2. Install dependencies: 
+   ```bash
+   yarn install
+   ```
+3. Configure Alchemy API credentials
+4. Run development server: 
+   ```bash
+   yarn start
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Blockchain Concepts Demonstrated
+- Web3 data retrieval
+- Real-time blockchain monitoring
+- ERC20 token transfer tracking
+- Ethereum network fee mechanics
